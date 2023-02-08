@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QRadioButton
+from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QRadioButton, QPushButton
 
 from .tools import TOOLS, Tool
 
@@ -18,6 +18,13 @@ class ToolBox(QGroupBox):
             self.layout.addWidget(chk)
             if self.selected_tool is None:
                 chk.setChecked(True)
+        
+        self.stop_editing_button = QPushButton('Stop editing')
+        self.layout.addWidget(self.stop_editing_button)
+        self.stop_editing_button.clicked.connect(self.stop_editing)
+    
+    def stop_editing(self):
+        self.app.particle_browser.stop_editing()
 
     def selected_tool_changed(self, v, tool):
         if v:
