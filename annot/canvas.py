@@ -1,4 +1,8 @@
 from enum import Enum
+from typing import Optional
+
+import numpy as np
+import cv2
 
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QPaintEvent, QPainter, QMouseEvent, QColor, QImage, QBrush, QPainterPath, QPixmap, QPen
@@ -22,7 +26,9 @@ class Canvas(QWidget):
         self.mouse_screen_pos = (0, 0)
         self.pan_mouse_start_pos = (0, 0)
         self.pan_start_pos = (0, 0)
-        self.image = None
+
+        self.image_array: Optional[np.ndarray] = None
+        self.image: Optional[QImage] = None
         self.image_size = (1000, 1000)
 
         self.setMouseTracking(True)
@@ -113,11 +119,31 @@ class Canvas(QWidget):
     def zoom_out(self):
         pass
 
-    def set_image(self, image_fn: str):
-        self.image = QImage(image_fn)
+    def set_image_from_array(self):
+        transform = self.app.aug_toolbox.get_transform()
+
+        f_array = self.image_array.astype(float)
+        transform(f_array)
+        f_array[f_array > 255.0] = 255.0
+        f_array[f_array < 0.0] = 0.0
+        i_array = f_array.astype(np.uint8)
+        
+        h, w = i_array.shape
+        self.image = QImage(
+            i_array,
+            w,
+            h,
+            w,
+            QImage.Format.Format_Grayscale8
+        )
         self.image_size = self.image.width(), self.image.height()
         self.resize(self.image.size())
         self.repaint()
+
+    def set_image(self, image_fn: str):
+        self.image_array = cv2.imread(image_fn, cv2.IMREAD_GRAYSCALE)
+        assert self.image_array is not None, f'Failed to read image {image_fn}'
+        self.set_image_from_array()
 
     def paintEvent(self, event: QPaintEvent):
         # TODO: scale for zooming

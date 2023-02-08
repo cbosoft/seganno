@@ -13,6 +13,7 @@ from .tool_box import ToolBox
 from .palette import ClassPalette
 from .particles import ParticleBrowser
 from .dataset_browser import DatasetBrowser
+from .image_aug import AugmentationToolbox
 
 
 class MainWindow(QMainWindow):
@@ -28,6 +29,7 @@ class MainWindow(QMainWindow):
         self.class_palette = ClassPalette(self)
         self.particle_browser = ParticleBrowser(self)
         self.dataset_browser = DatasetBrowser(self)
+        self.aug_toolbox = AugmentationToolbox(self)
 
         cw = QWidget()
         self.setCentralWidget(cw)
@@ -39,6 +41,7 @@ class MainWindow(QMainWindow):
         left.layout = QVBoxLayout(left)
         left.layout.addWidget(self.toolbox)
         left.layout.addWidget(self.class_palette)
+        left.layout.addWidget(self.aug_toolbox)
 
         # TODO: ZOOM
         # zoom_group = QGroupBox('Zoom')
