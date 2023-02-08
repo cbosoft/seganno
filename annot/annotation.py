@@ -15,6 +15,9 @@ class Annotation:
         self.im_id = None
         self.class_label = class_label
 
+        self.is_editing = False
+        self.is_selected = False
+
     def __contains__(self, pt):
         return Path(self.points).contains_point(pt)
 

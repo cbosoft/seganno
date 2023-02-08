@@ -1,7 +1,7 @@
 from enum import Enum
 
 from PySide6.QtWidgets import QWidget
-from PySide6.QtGui import QPaintEvent, QPainter, QMouseEvent, QColor, QImage, QBrush, QPainterPath, QPixmap
+from PySide6.QtGui import QPaintEvent, QPainter, QMouseEvent, QColor, QImage, QBrush, QPainterPath, QPixmap, QPen
 from PySide6.QtCore import Qt
 
 from .annotation import Annotation
@@ -145,7 +145,7 @@ class Canvas(QWidget):
         p.end()
 
     @staticmethod
-    def draw_polyg(p: QPainter, polyg, filled: bool, colour, fill_opacity):
+    def draw_polyg(p: QPainter, polyg, filled: bool, bordered: bool, dashed_border: bool, colour, fill_opacity: int, bright_border: bool):
         assert polyg
         path = QPainterPath()
         path.moveTo(*polyg[0])
@@ -156,7 +156,20 @@ class Canvas(QWidget):
             c = QColor(colour)
             c.setAlpha(fill_opacity)
             p.fillPath(path, c)
-        p.drawPath(path)
+        if bordered:
+            pen = QPen()
+            if dashed_border:
+                pen.setStyle(Qt.PenStyle.DotLine)
+            else:
+                pen.setStyle(Qt.PenStyle.SolidLine)
+            if bright_border:
+                pen.setColor(colour)
+                pen.setWidth(3)
+            else:
+                pen.setColor('#000000')
+                pen.setWidth(1)
+            p.setPen(pen)
+            p.drawPath(path)
 
     def draw_annotation(self, annot: Annotation, p: QPainter, is_editing: bool):
         if annot.points:
@@ -165,4 +178,11 @@ class Canvas(QWidget):
             else:
                 polyg = annot.points
 
-            self.draw_polyg(p, polyg, True, annot.colour, 127)
+            self.draw_polyg(
+                p, polyg,
+                filled=True,
+                bright_border=annot.is_selected and not annot.is_editing,
+                bordered=annot.is_selected or annot.is_editing,
+                dashed_border=not annot.is_editing, 
+                colour=annot.colour,
+                fill_opacity=60)
