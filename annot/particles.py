@@ -1,6 +1,6 @@
 from typing import List
 
-from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QScrollArea, QTableWidget, QTableWidgetItem, QComboBox, QPushButton
+from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QScrollArea, QTableWidget, QTableWidgetItem, QComboBox, QPushButton, QHeaderView
 
 from .annotation import Annotation
 from .class_labels import CLASSES
@@ -20,10 +20,16 @@ class ParticleBrowser(QGroupBox):
         self.layout.addWidget(scroll)
         scroll.layout = QVBoxLayout(scroll)
         self.table_particles = QTableWidget()
+        self.table_particles.itemSelectionChanged.connect(self.selection_changed)
         scroll.layout.addWidget(self.table_particles)
 
         self.table_particles.setColumnCount(4)
         self.table_particles.setHorizontalHeaderLabels(['ID', 'Class', '', ''])
+        header = self.table_particles.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
 
         self.setMinimumHeight(300)
     
@@ -40,7 +46,7 @@ class ParticleBrowser(QGroupBox):
     def refresh_table(self):
         self.table_particles.setRowCount(len(self.annotations))
         for r, annot in enumerate(self.annotations):
-            self.table_particles.setItem(r, 0, QTableWidgetItem(f'{self.im_id}/{r+1}'))
+            self.table_particles.setItem(r, 0, QTableWidgetItem(f'{self.im_id}-{r+1}'))
             # self.table_particles.setItem(r, 1, QTableWidgetItem(CLASSES[annot.class_label-1]))
             class_sel = QComboBox()
             class_sel.addItems(CLASSES)
