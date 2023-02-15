@@ -3,67 +3,112 @@ from typing import Optional, List
 import numpy as np
 import scipy.ndimage
 
-from PySide6.QtWidgets import QGroupBox, QFormLayout, QSlider, QCheckBox
+from PySide6.QtWidgets import QGroupBox, QFormLayout, QSlider, QCheckBox, QPushButton
 from PySide6.QtCore import Qt
 
 
 class Augmentation:
+
+    def __init__(self, name: str):
+        self.name = name
 
     def __call__(self, image: np.ndarray):
         self.apply_to_image(image)
     
     def apply_to_image(self, image: np.ndarray):
         raise NotImplementedError
+
+    def reset(self):
+        raise NotImplementedError
     
-    def update(self, v):
-        pass
+    def widget(self, update_f):
+        raise NotImplementedError
 
 
 class ComposedAugmentations(Augmentation):
 
     def __init__(self, augs: List[Augmentation]):
+        super().__init__('')
         self.augs = augs
 
     def apply_to_image(self, image: np.ndarray):
         for aug in self.augs:
             aug.apply_to_image(image)
+    
+    def widget(self, update_f):
+        return [(aug.name, aug.widget(update_f)) for aug in self.augs]
+    
+    def reset(self):
+        for aug in self.augs:
+            aug.reset()
+            
 
 class ContrastAdjust(Augmentation):
 
     def __init__(self):
-        self.v = 1.0
+        super().__init__('Contrast')
+        self.step = 0.05
+        self.w = None
     
     def apply_to_image(self, image: np.ndarray):
-        image *= self.v
+        v = self.w.value()*self.step
+        # a = image[:-40].max()
+        # n_img = image/a
+        # cadj_nimg = np.power(n_img, v)
+        image *= v
     
-    def update(self, v: int):
-        self.v = v*0.1
+    def widget(self, update_f):
+        self.w = QSlider(Qt.Orientation.Horizontal)
+        self.w.setMinimum(int(0.1/self.step))
+        self.w.setValue(int(1.0/self.step))
+        self.w.setMaximum(int(5.0/self.step))
+        self.w.valueChanged.connect(update_f)
+        return self.w
+    
+    def reset(self):
+        self.w.setValue(int(1.0/self.step))
 
 class BrightnessAdjust(Augmentation):
 
     def __init__(self):
-        self.v = 0.0
+        super().__init__('Brightness')
+        self.step = 0.05
+        self.w = None
     
     def apply_to_image(self, image: np.ndarray):
-        image += self.v
+        image += self.w.value()*self.step
     
-    def update(self, v: int):
-        self.v = v*0.1
+    def widget(self, update_f):
+        self.w = QSlider(Qt.Orientation.Horizontal)
+        self.w.setMinimum(int(-127/self.step))
+        self.w.setValue(0)
+        self.w.setMaximum(int(127/self.step))
+        self.w.valueChanged.connect(update_f)
+        return self.w
+    
+    def reset(self):
+        self.w.setValue(0)
 
 
 class Filter2D_Aug(Augmentation):
 
-    def __init__(self, kernel):
-        self.kernel = kernel
-        self.active = False
+    def __init__(self, kernel, name):
+        super().__init__(name)
+        self.w = None
     
     def apply_to_image(self, image: np.ndarray):
-        if self.active:
+        if self.w.isChecked():
             out = scipy.ndimage.convolve(image, self.kernel)
             image[:] = out
     
-    def update(self, active: bool):
-        self.active = active
+    def widget(self, update_f):
+        self.w = QCheckBox('active?')
+        self.w.setChecked(False)
+        self.w.clicked.connect(update_f)
+        return self.w
+
+    def reset(self):
+        self.w.setChecked(False)
 
 
 class Smooth(Filter2D_Aug):
@@ -73,7 +118,9 @@ class Smooth(Filter2D_Aug):
             [1, 1, 1],
             [1, 1, 1],
             [1, 1, 1]
-        ])*(1./9.))
+        ])*(1./9.),
+        'Smoothing'
+        )
 
 
 class EdgeDet(Filter2D_Aug):
@@ -83,7 +130,7 @@ class EdgeDet(Filter2D_Aug):
             [-1, -1, -1],
             [-1, 8, -1],
             [-1, -1, -1]
-        ]))
+        ]), 'Edge Detection')
 
 
 class AugmentationToolbox(QGroupBox):
@@ -91,54 +138,26 @@ class AugmentationToolbox(QGroupBox):
     def __init__(self, app):
         super().__init__('Image Adjustments')
         self.app = app
-        self.layout= QFormLayout(self)
+        self.layout = QFormLayout(self)
 
-        augs = []
-        contrast = ContrastAdjust()
-        augs.append(contrast)
-        contrast_slider = QSlider(Qt.Orientation.Horizontal)
-        contrast_slider.setMinimum(10)
-        contrast_slider.setMaximum(50)
-        self.layout.addRow('Contrast', contrast_slider)
-        contrast_slider.valueChanged.connect(
-            lambda: self.update_tfm_and_image(
-                lambda: contrast.update(contrast_slider.value())))
-        
-        brightness = BrightnessAdjust()
-        augs.append(brightness)
-        brightness_slider = QSlider(Qt.Orientation.Horizontal)
-        brightness_slider.setMinimum(0)
-        brightness_slider.setMaximum(127)
-        self.layout.addRow('Brightness', brightness_slider)
-        brightness_slider.valueChanged.connect(
-            lambda: self.update_tfm_and_image(
-                lambda: brightness.update(brightness_slider.value())))
-        
-        smooth = Smooth()
-        augs.append(smooth)
-        smooth_chkbox = QCheckBox('active')
-        self.layout.addRow('Smoothing', smooth_chkbox)
-        smooth_chkbox.clicked.connect(
-            lambda: self.update_tfm_and_image(
-                lambda: smooth.update(smooth_chkbox.isChecked() )))
-        
-        edgedet = EdgeDet()
-        augs.append(edgedet)
-        edgedet_chkbox = QCheckBox('active')
-        self.layout.addRow('Edge Detection', edgedet_chkbox)
-        edgedet_chkbox.clicked.connect(
-            lambda: self.update_tfm_and_image(
-                lambda: edgedet.update(edgedet_chkbox.isChecked() )))
+        augs = [
+            BrightnessAdjust(),
+            ContrastAdjust(),
+            Smooth(),
+            EdgeDet(),
+        ]
 
         self.augmentations = ComposedAugmentations(augs)
+        update_f = self.app.canvas.set_image_from_array
+        for name, w in self.augmentations.widget(update_f):
+            self.layout.addRow(name, w)
 
         self.disable_chk = QCheckBox()
-        self.disable_chk.clicked.connect(self.app.canvas.set_image_from_array)
+        self.disable_chk.clicked.connect(update_f)
         self.layout.addRow('Disable all', self.disable_chk)
-
-    def update_tfm_and_image(self, f):
-        f()
-        self.app.canvas.set_image_from_array()
+        btn_reset = QPushButton('Reset')
+        btn_reset.clicked.connect(self.augmentations.reset)
+        self.layout.addRow(' ', btn_reset)
     
     def get_transform(self) -> Augmentation:
         if self.disable_chk.isChecked():
