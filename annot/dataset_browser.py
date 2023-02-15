@@ -83,6 +83,8 @@ class DatasetBrowser(QGroupBox):
 
             for image_fn in tqdm(image_fns):
                 image = QImage(image_fn)
+                if image.isNull():
+                    continue
                 image_fn = os.path.relpath(image_fn, self.dname)
                 coco_image = COCO_Image(len(self.images), image_fn, width=image.width(), height=image.height())
                 self.images.append(coco_image)
