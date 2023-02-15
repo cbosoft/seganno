@@ -53,7 +53,7 @@ class Annotation:
         )
 
     @classmethod
-    def from_coco(cls, images_by_id, *, id, image_id: int, category_id: int, bbox, segmentation, area, iscrowd) -> "Annotation":
+    def from_coco(cls, images_by_id, *, id, image_id: int, category_id: int, bbox, segmentation, area, iscrowd, **_) -> "Annotation":
         _ = bbox
         _ = area
         _ = iscrowd
