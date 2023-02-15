@@ -17,6 +17,8 @@ class COCO_Info:
     version: Optional[str] = None
     description: Optional[str] = None
     date_created: Optional[str] = None
+    contributor: Optional[str] = None
+    url: Optional[str] = None
 
 
 @dataclass
@@ -33,3 +35,7 @@ class COCO_Image:
     height: int
     width: int
     date_created: Optional[str] = None
+    license: Optional[str] = None
+    flickr_url: Optional[str] = None
+    coco_url: Optional[str] = None
+    date_captured: Optional[str] = None
