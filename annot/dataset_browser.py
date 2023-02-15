@@ -68,6 +68,7 @@ class DatasetBrowser(QGroupBox):
 
     def open_folder(self, dn: str):
         self.dname = dn
+        self.droot = os.path.dirname(dn)
         if os.path.exists(dn+'.json'):
             self.load_from_coco_json(dn+'.json')
         else:
@@ -75,6 +76,7 @@ class DatasetBrowser(QGroupBox):
             self.image_annotations = {}
             image_fns = []
             for root, _, files in os.walk(dn):
+                print(root)
                 for file in files:
                     _, ext = os.path.splitext(file)
                     if ext.lower() in self.IMAGE_EXTENSIONS:
@@ -85,7 +87,7 @@ class DatasetBrowser(QGroupBox):
                 image = QImage(image_fn)
                 if image.isNull():
                     continue
-                image_fn = os.path.relpath(image_fn, self.dname)
+                image_fn = os.path.relpath(image_fn, self.droot)
                 coco_image = COCO_Image(len(self.images), image_fn, width=image.width(), height=image.height())
                 self.images.append(coco_image)
                 self.image_annotations[coco_image.id] = []
@@ -148,7 +150,7 @@ class DatasetBrowser(QGroupBox):
 
     def selected_image_changed(self):
         index = self.dataset_table.selectedRanges()[0].topRow()
-        imname = os.path.join(self.dname, self.images[index].file_name)
+        imname = os.path.join(self.droot, self.images[index].file_name)
         im_id = self.images[index].id
         self.app.set_image(imname, self.images[index].id, self.image_annotations[im_id])
         self.app.particle_browser.refresh_table()
