@@ -1,3 +1,4 @@
+import os
 from enum import Enum
 from typing import Optional
 
@@ -23,6 +24,8 @@ class Canvas(QWidget):
         super().__init__()
         self.app = app
         self.mouse_pos = (0, 0)
+        self.scale_i = 4
+        self.scales = [0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0]
         self.mouse_screen_pos = (0, 0)
         self.pan_mouse_start_pos = (0, 0)
         self.pan_start_pos = (0, 0)
@@ -36,9 +39,14 @@ class Canvas(QWidget):
         self.setCursor(Qt.CursorShape.BlankCursor)
 
         self.input_state = InputState.Idle
+    
+    @property
+    def scale(self):
+        self.scale_i = max(min(self.scale_i, len(self.scales)-1), 0)
+        return self.scales[self.scale_i]
 
     def mouseMoveEvent(self, event: QMouseEvent):
-        self.mouse_pos = event.pos().x(), event.pos().y()
+        self.mouse_pos = event.pos().x()/self.scale, event.pos().y()/self.scale
         self.mouse_screen_pos = event.screenPos().x(), event.screenPos().y()
 
         if self.input_state == InputState.Idle:
@@ -114,10 +122,18 @@ class Canvas(QWidget):
         self.move(ox + (mx - sx), oy + (my - sy))
 
     def zoom_in(self):
-        pass
+        self.scale_i += 1
+        self.scale_i = max(min(self.scale_i, len(self.scales)-1), 0)
+        self.repaint()
 
     def zoom_out(self):
-        pass
+        self.scale_i -= 1
+        self.scale_i = max(min(self.scale_i, len(self.scales)-1), 0)
+        self.repaint()
+    
+    def reset_position(self):
+        self.move(0, 0)
+        self.scale_i = self.scales.index(1)
 
     def set_image_from_array(self):
         transform = self.app.aug_toolbox.get_transform()
@@ -141,26 +157,23 @@ class Canvas(QWidget):
         self.repaint()
 
     def set_image(self, image_fn: str):
+        image_fn = image_fn.replace('/', os.sep).replace('\\', os.sep)
         self.image_array = cv2.imread(image_fn, cv2.IMREAD_GRAYSCALE)
         assert self.image_array is not None, f'Failed to read image {image_fn}'
         self.set_image_from_array()
 
     def paintEvent(self, event: QPaintEvent):
         # TODO: scale for zooming
-        # s = 2.0
-        # if self.image is not None:
-        #     im_w, im_h = self.image.size().width(), self.image.size().height()
-        #     self.resize(int(im_w*s), int(im_h*s))
+        if self.image is not None:
+            im_w, im_h = self.image.size().width(), self.image.size().height()
+            self.resize(int(im_w*self.scale), int(im_h*self.scale))
+        
         p = QPainter()
         p.begin(self)
         p.setRenderHint(QPainter.Antialiasing)
-        # p.scale(s, s)
+        p.scale(self.scale, self.scale)
         if self.image:
             p.drawImage(0, 0, self.image)
-
-        # Border
-        p.setPen(QColor(0, 0, 0, 255))
-        p.drawRect(1, 1, self.width()-1, self.height()-1)
 
         # Annotations
         for annot in self.app.particle_browser.annotations:
