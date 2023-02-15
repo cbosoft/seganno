@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import List, Optional, Dict
 import json
 from datetime import datetime
 
@@ -27,7 +27,7 @@ class DatasetBrowser(QGroupBox):
         )
         self.licenses: List[COCO_License] = []
         self.images: List[COCO_Image] = []
-        self.image_annotations: List[List[Annotation]] = []
+        self.image_annotations: Dict[int, List[Annotation]] = []
         self.categories: List[COCO_Category] = [
             COCO_Category(id=i, name=name)
             for i, name in enumerate(CLASSES, start=1)
@@ -78,8 +78,9 @@ class DatasetBrowser(QGroupBox):
             for image_fn in tqdm(image_fns):
                 image = QImage(image_fn)
                 image_fn = os.path.relpath(image_fn, self.dname)
-                self.images.append(COCO_Image(len(self.images), image_fn, width=image.width(), height=image.height()))
-                self.image_annotations.append([])
+                coco_image = COCO_Image(len(self.images), image_fn, width=image.width(), height=image.height())
+                self.images.append(coco_image)
+                self.image_annotations[coco_image.id] = []
         self.refresh_list()
 
     def load_from_coco_json(self, path: str):
@@ -89,7 +90,7 @@ class DatasetBrowser(QGroupBox):
         self.licenses = [COCO_License(**lkw) for lkw in data['licenses']]
         self.images = [COCO_Image(**imkw) for imkw in data['images']]
         images_by_id = {im.id: im for im in self.images}
-        self.image_annotations = [list() for _ in self.images]
+        self.image_annotations = {im.id: list() for im in self.images}
         annots = [Annotation.from_coco(images_by_id, **ankw) for ankw in data['annotations']]
         for annot in annots:
             im = images_by_id[annot.im_id]
@@ -129,5 +130,6 @@ class DatasetBrowser(QGroupBox):
         indices = self.image_list.selectedIndexes()
         index = indices[0].row()
         imname = os.path.join(self.dname, self.images[index].file_name)
-        self.app.set_image(imname, self.images[index].id, self.image_annotations[index])
+        im_id = self.images[index].id
+        self.app.set_image(imname, self.images[index].id, self.image_annotations[im_id])
         self.app.particle_browser.refresh_table()
