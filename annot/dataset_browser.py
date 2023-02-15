@@ -5,8 +5,9 @@ from datetime import datetime
 
 from tqdm import tqdm
 
-from PySide6.QtWidgets import QWidget, QGroupBox, QListWidget, QScrollArea, QFileDialog, QPushButton, QHBoxLayout, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QGroupBox, QTableWidget, QTableWidgetItem, QScrollArea, QFileDialog, QPushButton, QHBoxLayout, QVBoxLayout, QHeaderView
 from PySide6.QtGui import QImage
+from PySide6.QtCore import Qt
 
 from .coco import COCO_Category, COCO_Info, COCO_Image, COCO_License
 from .annotation import Annotation
@@ -48,9 +49,14 @@ class DatasetBrowser(QGroupBox):
         scroll = QScrollArea()
         self.layout.addWidget(scroll)
         scroll.layout = QVBoxLayout(scroll)
-        self.image_list = QListWidget()
-        scroll.layout.addWidget(self.image_list)
-        self.image_list.itemSelectionChanged.connect(self.selected_image_changed)
+        self.dataset_table = QTableWidget()
+        cols = ['Mark', '#Ann', 'Filename']
+        self.dataset_table.setColumnCount(len(cols))
+        self.dataset_table.setHorizontalHeaderLabels(cols)
+        header = self.dataset_table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        scroll.layout.addWidget(self.dataset_table)
+        self.dataset_table.itemSelectionChanged.connect(self.selected_image_changed)
 
     def open_dataset(self):
         dn = QFileDialog.getExistingDirectory(
@@ -97,6 +103,8 @@ class DatasetBrowser(QGroupBox):
             self.image_annotations[im.id].append(annot)
         self.categories = [COCO_Category(**ckw) for ckw in data['categories']]
 
+        print(f'Loaded DS with {len(self.images)} images and {len(annots)} annotations.')
+
     def as_coco_dict(self):
         images = []
         annots = []
@@ -107,6 +115,7 @@ class DatasetBrowser(QGroupBox):
                 adict['id'] = len(annots)
                 adict['image_id'] = im.id
                 annots.append(adict)
+        print(f'saved ds of {len(images)} images and {len(annots)} annotations.')
         return dict(
             info=self.info.__dict__,
             images=images,
@@ -122,13 +131,17 @@ class DatasetBrowser(QGroupBox):
             json.dump(data, f, indent=2)
 
     def refresh_list(self):
-        self.image_list.clear()
-        for image in self.images:
-            self.image_list.addItem(image.file_name)
+        self.dataset_table.setRowCount(len(self.images))
+        for r, image in enumerate(self.images):
+            twi = QTableWidgetItem()
+            twi.setCheckState(Qt.CheckState.Unchecked)
+            self.dataset_table.setItem(r, 0, twi)
+            n_annots = len(self.image_annotations[image.id])
+            self.dataset_table.setItem(r, 1, QTableWidgetItem(f'{n_annots}'))
+            self.dataset_table.setItem(r, 2, QTableWidgetItem(image.file_name))
 
     def selected_image_changed(self):
-        indices = self.image_list.selectedIndexes()
-        index = indices[0].row()
+        index = self.dataset_table.selectedRanges()[0].topRow()
         imname = os.path.join(self.dname, self.images[index].file_name)
         im_id = self.images[index].id
         self.app.set_image(imname, self.images[index].id, self.image_annotations[im_id])
