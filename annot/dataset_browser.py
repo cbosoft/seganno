@@ -124,11 +124,15 @@ class DatasetBrowser(QGroupBox):
             categories=[cat.__dict__ for cat in self.categories]
         )
 
-    def save_dataset(self):
+    def save(self):
         output_path = self.dname + '.json'
         data = self.as_coco_dict()
-        with open(output_path, 'w') as f:
-            json.dump(data, f, indent=2)
+        self.save_dataset(output_path, data)
+
+    @staticmethod
+    def save_dataset(filename, dataset):
+        with open(filename, 'w') as f:
+            json.dump(dataset, f, indent=2)
 
     def refresh_list(self):
         self.dataset_table.setRowCount(len(self.images))
