@@ -41,7 +41,7 @@ class DatasetBrowser(QGroupBox):
         self.btn_open = QPushButton('Open')
         self.btn_open.clicked.connect(self.open_dataset)
         self.btn_save = QPushButton('Save')
-        self.btn_save.clicked.connect(self.save_dataset)
+        self.btn_save.clicked.connect(self.save)
         button_box.layout = QHBoxLayout(button_box)
         button_box.layout.addWidget(self.btn_open)
         button_box.layout.addWidget(self.btn_save)
@@ -72,7 +72,7 @@ class DatasetBrowser(QGroupBox):
             self.load_from_coco_json(dn+'.json')
         else:
             self.images = []
-            self.image_annotations = []
+            self.image_annotations = {}
             image_fns = []
             for root, _, files in os.walk(dn):
                 for file in files:
