@@ -18,7 +18,7 @@ from .image_aug import AugmentationToolbox
 
 class MainWindow(QMainWindow):
 
-    SIDE_PANEL_SIZE = 200
+    SIDE_PANEL_SIZE = 250
 
     def __init__(self):
         super().__init__()
