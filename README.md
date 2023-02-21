@@ -24,5 +24,6 @@ Download; install requirements; run.
 git clone git@github.com:cbosoft/seganno
 cd seganno
 pip install -r requirements
+# pip install torch torchvision  # for DL operations
 python -m annot
 ```
