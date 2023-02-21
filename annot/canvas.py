@@ -75,7 +75,12 @@ class Canvas(QWidget):
             if Qt.KeyboardModifier.ShiftModifier in event.modifiers():
                 pass
             else:
-                self.end_path()
+                annot = self.app.particle_browser.current
+                if annot:
+                    self.end_path()
+                else:
+                    self.create_new_annot()
+                    self.add_or_remove(should_add=True)
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         self.input_state = InputState.Idle
@@ -86,8 +91,8 @@ class Canvas(QWidget):
 
     def add_or_remove(self, should_add: bool):
         tool = self.get_current_tool()
-        annotation = self.get_current_annotation(should_add)
-        if should_add:
+        annotation = self.get_current_annotation(False)
+        if should_add and annotation:
             tool.add(*self.mouse_pos, annotation)
         elif annotation:
             tool.remove(*self.mouse_pos, annotation)
@@ -95,9 +100,8 @@ class Canvas(QWidget):
 
     def add_or_remove_move(self, should_add: bool):
         tool = self.get_current_tool()
-        annotation = self.get_current_annotation(should_add)
-        print(should_add, tool, annotation)
-        if should_add:
+        annotation = self.get_current_annotation(False)
+        if should_add and annotation:
             tool.add_move(*self.mouse_pos, annotation)
         elif annotation:
             tool.remove_move(*self.mouse_pos, annotation)
@@ -105,12 +109,16 @@ class Canvas(QWidget):
 
     def get_current_tool(self):
         return self.app.toolbox.current_tool()
+    
+    def create_new_annot(self):
+        annot = Annotation(self.image_size, class_label=self.app.class_palette.selected_class)
+        self.app.particle_browser.add_annotation(annot, is_current=True)
+        return annot
 
     def get_current_annotation(self, create_if_not_exists: bool):
         annot = self.app.particle_browser.get_current_annotation(*self.mouse_pos)
         if annot is None and create_if_not_exists:
-            annot = Annotation(self.image_size, class_label=self.app.class_palette.selected_class)
-            self.app.particle_browser.add_annotation(annot, is_current=True)
+            annot = self.create_new_annot()
         return annot
 
     def pan(self):
