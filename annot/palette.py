@@ -22,3 +22,4 @@ class ClassPalette(QGroupBox):
     def selected_class_changed(self, is_checked, i):
         if is_checked:
             self.selected_class = i
+            self.app.set_info('class', CLASSES[i - 1])

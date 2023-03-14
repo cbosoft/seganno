@@ -291,4 +291,5 @@ class DatasetBrowser(QGroupBox):
         imname = os.path.join(self.droot, self.images[index].file_name)
         im_id = self.images[index].id
         self.app.set_image(imname, self.images[index].id, self.image_annotations[im_id])
+        self.app.set_info('image ID', f'{im_id}')
         self.app.particle_browser.refresh_table()

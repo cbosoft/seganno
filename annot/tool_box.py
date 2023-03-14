@@ -13,6 +13,7 @@ class ToolBox(QGroupBox):
         self.layout = QVBoxLayout(self)
 
         for tool_name, tool in TOOLS.items():
+            tool.name = tool_name
             chk = QRadioButton(tool_name)
             chk.toggled.connect(lambda v, tool=tool: self.selected_tool_changed(v, tool))
             self.layout.addWidget(chk)
@@ -29,6 +30,7 @@ class ToolBox(QGroupBox):
     def selected_tool_changed(self, v, tool):
         if v:
             self.selected_tool = tool
+            self.app.set_info('tool', tool.name)
 
     def current_tool(self) -> Tool:
         return self.selected_tool

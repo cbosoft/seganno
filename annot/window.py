@@ -6,6 +6,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QPushButton,
     QGroupBox,
+    QLabel,
+    QSizePolicy,
 )
 
 from .canvas import Canvas
@@ -22,6 +24,8 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        self.info_label = QLabel()
+        self.info_parts = {}
 
         self.setMouseTracking(True)
         self.canvas = Canvas(self)
@@ -61,6 +65,8 @@ class MainWindow(QMainWindow):
         centre.layout = QVBoxLayout(centre)
         canvas_container = QWidget()
         centre.layout.addWidget(canvas_container)
+        centre.layout.addWidget(self.info_label)
+        self.info_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.canvas.setParent(canvas_container)
 
         right = QWidget()
@@ -76,6 +82,13 @@ class MainWindow(QMainWindow):
 
         self.resize(1280, 720)
         self.setMouseTracking(True)
+    
+    def set_info(self, k: str, v: str):
+        self.info_parts[k] = v
+        self.refresh_info_label()
+    
+    def refresh_info_label(self):
+        self.info_label.setText(', '.join([f'{k}: {v}' for k, v in self.info_parts.items()]))
 
     def set_image(self, image_fn: str, image_id: int, annot_storage: list):
         self.particle_browser.set_annotations(annot_storage, image_id)
