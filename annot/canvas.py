@@ -175,7 +175,6 @@ class Canvas(QWidget):
         self.set_image_from_array()
 
     def paintEvent(self, event: QPaintEvent):
-        # TODO: scale for zooming
         if self.image is not None:
             im_w, im_h = self.image.size().width(), self.image.size().height()
             self.resize(int(im_w*self.scale), int(im_h*self.scale))
@@ -237,4 +236,4 @@ class Canvas(QWidget):
                 bordered=annot.is_selected or annot.is_editing,
                 dashed_border=not annot.is_editing, 
                 colour=annot.colour,
-                fill_opacity=60)
+                fill_opacity=60 if annot.is_editing else 90)
