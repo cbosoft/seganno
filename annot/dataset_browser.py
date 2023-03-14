@@ -70,6 +70,7 @@ class DatasetBrowser(QGroupBox):
         scroll.layout.addWidget(self.dataset_table)
         self.dataset_table.itemSelectionChanged.connect(self.selected_image_changed)
         self.dataset_table.cellClicked.connect(self.datatable_row_clicked)
+        self.dataset_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
 
     def open_dataset(self):
         dn = QFileDialog.getExistingDirectory(
