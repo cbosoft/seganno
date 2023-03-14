@@ -6,9 +6,11 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QPushButton,
     QGroupBox,
+    QSplitter,
     QLabel,
     QSizePolicy,
 )
+from PySide6.QtCore import Qt
 
 from .canvas import Canvas
 from .tool_box import ToolBox
@@ -35,9 +37,9 @@ class MainWindow(QMainWindow):
         self.dataset_browser = DatasetBrowser(self)
         self.aug_toolbox = AugmentationToolbox(self)
 
-        cw = QWidget()
+        cw = QSplitter(Qt.Orientation.Horizontal)  # QWidget()
         self.setCentralWidget(cw)
-        cw.layout = QHBoxLayout(cw)
+        # cw.layout = QHBoxLayout(cw)
 
         left = QWidget()
         left.setMaximumWidth(self.SIDE_PANEL_SIZE)
@@ -76,9 +78,12 @@ class MainWindow(QMainWindow):
         right.layout.addWidget(self.particle_browser)
         right.layout.addWidget(self.dataset_browser)
 
-        cw.layout.addWidget(left)
-        cw.layout.addWidget(centre)
-        cw.layout.addWidget(right)
+        # cw.layout.addWidget(left)
+        # cw.layout.addWidget(centre)
+        # cw.layout.addWidget(right)
+        cw.addWidget(left)
+        cw.addWidget(centre)
+        cw.addWidget(right)
 
         self.resize(1280, 720)
         self.setMouseTracking(True)
