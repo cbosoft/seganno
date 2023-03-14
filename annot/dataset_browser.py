@@ -21,6 +21,7 @@ class DatasetBrowser(QGroupBox):
 
     def __init__(self, app):
         super().__init__('Dataset')
+        self.previous_dir = '.'
         self.app = app
         self.info = self.default_info()
         self.licenses: List[COCO_License] = []
@@ -73,7 +74,7 @@ class DatasetBrowser(QGroupBox):
     def open_dataset(self):
         dn = QFileDialog.getExistingDirectory(
             self, 'Open a directory of images',
-            '.'
+            self.previous_dir,
         )
         if dn:
             self.open_folder(dn)
