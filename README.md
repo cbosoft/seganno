@@ -5,7 +5,7 @@ Similar, more mature, tools:
 - [CVAT](https://cvat.ai)
 - [labelImg](https://github.com/heartexlabs/labelImg)
 
-![screenshot of annot in action](https://github.com/cbosoft/seganno/blob/master/screenshots/seganno_screenshot_1.png?raw=true)
+![screenshot of annot in action](https://github.com/cbosoft/seganno/blob/master/screenshots/seganno_screenshot_2.png?raw=true)
 [image src](https://cmac.ac.uk/case-study-database/exquisite-particles-towards-predicting-agglomeration-in-apis)
 
 # Motivation
