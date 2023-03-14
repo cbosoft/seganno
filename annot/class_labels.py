@@ -3,7 +3,7 @@ CLASSES = [
     'Regular',
     'Spherical',
     'Agglomerated',
-    'Very Small',
+    'Platelet',
     'User 1',
     'User 2',
     'User 3',
@@ -18,7 +18,7 @@ CLASS_COLOURS = [
     '#ff7f0e',  # 2. regular
     '#2ca02c',  # 3. spherical
     '#d62728',  # 4. agglomerated
-    '#9467bd',  # 5. very small
+    '#9467bd',  # 5. platelet
     '#8c564b',  # 6. user 1
     '#e377c2',  # 7. user 2
     '#7f7f7f',  # 8. user 3
