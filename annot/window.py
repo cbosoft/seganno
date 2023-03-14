@@ -66,6 +66,7 @@ class MainWindow(QMainWindow):
         centre = QWidget()
         centre.layout = QVBoxLayout(centre)
         canvas_container = QWidget()
+        canvas_container.setStyleSheet('background-color: white;')
         centre.layout.addWidget(canvas_container)
         centre.layout.addWidget(self.info_label)
         self.info_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
