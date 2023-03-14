@@ -49,7 +49,6 @@ class MainWindow(QMainWindow):
         left.layout.addWidget(self.class_palette)
         left.layout.addWidget(self.aug_toolbox)
 
-        # TODO: ZOOM
         zoom_group = QGroupBox('Zoom')
         left.layout.addWidget(zoom_group)
         zoom_group.layout = QHBoxLayout(zoom_group)
