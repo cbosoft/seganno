@@ -39,3 +39,4 @@ class COCO_Image:
     flickr_url: Optional[str] = None
     coco_url: Optional[str] = None
     date_captured: Optional[str] = None
+    marked: bool = False
