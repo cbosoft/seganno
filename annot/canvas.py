@@ -23,7 +23,7 @@ class Canvas(QWidget):
     def __init__(self, app):
         super().__init__()
         self.app = app
-        self.mouse_pos = (0, 0)
+        self.mouse_pos = None
         self.scale_i = 4
         self.scales = [0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0]
         self.mouse_screen_pos = (0, 0)
@@ -44,6 +44,10 @@ class Canvas(QWidget):
     def scale(self):
         self.scale_i = max(min(self.scale_i, len(self.scales)-1), 0)
         return self.scales[self.scale_i]
+    
+    def leaveEvent(self, ev):
+        self.mouse_pos = None
+        self.repaint()
 
     def mouseMoveEvent(self, event: QMouseEvent):
         self.mouse_pos = event.pos().x()/self.scale, event.pos().y()/self.scale
@@ -188,7 +192,8 @@ class Canvas(QWidget):
             self.draw_annotation(annot, p, annot == self.app.particle_browser.current)
 
         # cursor
-        self.app.toolbox.current_tool().draw_cursor(*self.mouse_pos, p)
+        if self.mouse_pos is not None:
+            self.app.toolbox.current_tool().draw_cursor(*self.mouse_pos, p)
         p.end()
 
     @staticmethod
@@ -220,7 +225,7 @@ class Canvas(QWidget):
 
     def draw_annotation(self, annot: Annotation, p: QPainter, is_editing: bool):
         if annot.points:
-            if is_editing and self.get_current_tool().show_next_point:
+            if is_editing and self.get_current_tool().show_next_point and self.mouse_pos is not None:
                 polyg = [*annot.points, self.mouse_pos]
             else:
                 polyg = annot.points
