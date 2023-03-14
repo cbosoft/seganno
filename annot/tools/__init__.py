@@ -4,5 +4,5 @@ from .brush import BrushTool
 
 TOOLS = {
     'Polygon Tool': PolygonTool(),
-    'Brush Tool': BrushTool()
+    'Sweeping Brush Tool': BrushTool()
 }
