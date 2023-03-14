@@ -10,8 +10,8 @@ class PolygonTool(Tool):
 
     def draw_cursor(self, x, y, p: QPainter):
         p.setPen(QColor(0, 0, 255, 255))
-        p.drawEllipse(x-4, y-4, 8, 8)
-        p.drawEllipse(x-1, y-1, 2, 2)
+        p.drawLine(x, y-10, x, y+10)
+        p.drawLine(x-10, y, x+10, y)
 
     def add(self, x, y, a: Annotation):
         a.points.append((x, y))
