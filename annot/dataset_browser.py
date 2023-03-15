@@ -199,6 +199,7 @@ class DatasetBrowser(QGroupBox):
                 continue
             image_fn = os.path.relpath(image_fn, droot)
             coco_image = COCO_Image(len(images), image_fn, width=image.width(), height=image.height())
+            coco_image.file_name = coco_image.file_name.replace('\\', '/')
             images.append(coco_image)
             image_annotations[coco_image.id] = []
         
