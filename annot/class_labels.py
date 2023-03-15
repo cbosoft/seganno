@@ -8,7 +8,7 @@ CLASSES = [
     'User 2',
     'User 3',
     'User 4',
-    'User 5',
+    'Impurity',
 ]
 
 
@@ -23,5 +23,5 @@ CLASS_COLOURS = [
     '#e377c2',  # 7. user 2
     '#7f7f7f',  # 8. user 3
     '#bcbd22',  # 9. user 4
-    '#17becf',  # 19. user 5
+    '#17becf',  # 10. Impurity (not a particle)
 ]
