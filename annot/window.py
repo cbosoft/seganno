@@ -1,4 +1,4 @@
-from PySide6.QtGui import QMouseEvent
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QMainWindow,
     QWidget,
@@ -18,6 +18,7 @@ from .palette import ClassPalette
 from .particles import ParticleBrowser
 from .dataset_browser import DatasetBrowser
 from .image_aug import AugmentationToolbox
+from .resources import ICONS
 
 
 class MainWindow(QMainWindow):
@@ -52,11 +53,14 @@ class MainWindow(QMainWindow):
         zoom_group = QGroupBox('Zoom')
         left.layout.addWidget(zoom_group)
         zoom_group.layout = QHBoxLayout(zoom_group)
-        btn_zoom_in = QPushButton('+')
+        btn_zoom_in = QPushButton()
+        btn_zoom_in.setIcon(QPixmap(ICONS['zoom_in']))
         btn_zoom_in.clicked.connect(self.canvas.zoom_in)
-        btn_zoom_out = QPushButton('-')
+        btn_zoom_out = QPushButton()
+        btn_zoom_out.setIcon(QPixmap(ICONS['zoom_out']))
         btn_zoom_out.clicked.connect(self.canvas.zoom_out)
-        btn_reset = QPushButton('reset')
+        btn_reset = QPushButton('Reset')
+        btn_reset.setIcon(QPixmap(ICONS['reset']))
         btn_reset.clicked.connect(self.canvas.reset_position)
         zoom_group.layout.addWidget(btn_zoom_in)
         zoom_group.layout.addWidget(btn_zoom_out)
