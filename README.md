@@ -23,7 +23,7 @@ Download; install requirements; done.
 ```
 git clone git@github.com:cbosoft/seganno
 cd seganno
-pip install -r requirements
+pip install -r requirements.txt
 # pip install torch torchvision  # for DL operations
 python -m annot
 ```
