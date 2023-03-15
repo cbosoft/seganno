@@ -10,6 +10,8 @@ class BrushTool(Tool):
 
     HALF_BRUSH_SIZE = 20
 
+    icon = 'sweep_brush'
+
     def draw_cursor(self, x, y, p: QPainter):
         p.setPen(QColor(0, 255, 0, 255))
         p.drawEllipse(x-self.HALF_BRUSH_SIZE, y-self.HALF_BRUSH_SIZE, self.HALF_BRUSH_SIZE*2, self.HALF_BRUSH_SIZE*2)

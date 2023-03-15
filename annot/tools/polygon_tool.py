@@ -7,6 +7,7 @@ from .tool_base import Tool
 class PolygonTool(Tool):
 
     show_next_point = True
+    icon = 'polygon'
 
     def draw_cursor(self, x, y, p: QPainter):
         p.setPen(QColor(0, 0, 255, 255))

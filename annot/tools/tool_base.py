@@ -6,6 +6,7 @@ from ..annotation import Annotation
 class Tool:
 
     show_next_point = False
+    icon = None
 
     def draw_cursor(self, x, y, p: QPainter):
         raise NotImplementedError
