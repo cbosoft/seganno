@@ -6,7 +6,7 @@ import shutil
 
 from tqdm import tqdm
 
-from PySide6.QtWidgets import QWidget, QGroupBox, QTableWidget, QTableWidgetItem, QScrollArea, QFileDialog, QPushButton, QHBoxLayout, QVBoxLayout, QHeaderView, QMessageBox
+from PySide6.QtWidgets import QWidget, QGroupBox, QTableWidget, QTableWidgetItem, QScrollArea, QFileDialog, QPushButton, QHBoxLayout, QVBoxLayout, QHeaderView, QMessageBox, QCheckBox
 from PySide6.QtGui import QImage
 from PySide6.QtCore import Qt
 
@@ -31,8 +31,10 @@ class DatasetBrowser(QGroupBox):
         self.dname: Optional[str] = None
 
         self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         open_button_box = QWidget()
         open_button_box.layout = QHBoxLayout(open_button_box)
+        open_button_box.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(open_button_box)
         self.btn_open = QPushButton('Open')
         self.btn_open.setToolTip('Open a dataset, replacing current.')
@@ -47,6 +49,7 @@ class DatasetBrowser(QGroupBox):
         save_button_box = QWidget()
         self.layout.addWidget(save_button_box)
         save_button_box.layout = QHBoxLayout(save_button_box)
+        save_button_box.layout.setContentsMargins(0, 0, 0, 0)
         self.btn_save = QPushButton('Save')
         self.btn_save.setToolTip('Save current dataset.')
         self.btn_save.clicked.connect(self.save)
@@ -57,6 +60,11 @@ class DatasetBrowser(QGroupBox):
         self.btn_save_marked.setEnabled(False)
         save_button_box.layout.addWidget(self.btn_save)
         save_button_box.layout.addWidget(self.btn_save_marked)
+
+        self.chk_review_mode = QCheckBox('Review mode?')
+        self.chk_review_mode.setToolTip('Select to filter list of images down to those that have annotations already.')
+        self.chk_review_mode.clicked.connect(self.refresh_list)
+        self.layout.addWidget(self.chk_review_mode)
 
         scroll = QScrollArea()
         self.layout.addWidget(scroll)
@@ -111,8 +119,8 @@ class DatasetBrowser(QGroupBox):
             self.load_coco_json(json_path)
         n_new_annots = len(annots)
         
-        assert categories == self.categories, \
-            f'Cannot merge datasets with disparate categories "{categories}" (new) vs "{self.categories}" (current)'
+        # assert categories == self.categories, \
+        #     f'Cannot merge datasets with disparate categories "{categories}" (new) vs "{self.categories}" (current)'
         
         current_images_by_fn = {im.file_name: im for im in self.images}
 
@@ -157,6 +165,8 @@ class DatasetBrowser(QGroupBox):
         info = COCO_Info(**data['info'])
         licenses = [COCO_License(**lkw) for lkw in data['licenses']]
         images = [COCO_Image(**imkw) for imkw in data['images']]
+        for coco_image in images:
+            coco_image.file_name = coco_image.file_name.replace('\\', '/')
         images_by_id = {im.id: im for im in images}
         image_annotations = {im.id: list() for im in images}
         annots = [Annotation.from_coco(images_by_id, **ankw) for ankw in data['annotations']]
@@ -187,7 +197,7 @@ class DatasetBrowser(QGroupBox):
         image_annotations = {}
         image_fns = []
         for root, _, files in os.walk(path):
-            for file in files:
+            for file in sorted(files):
                 _, ext = os.path.splitext(file)
                 if ext.lower() in cls.IMAGE_EXTENSIONS:
                     image_fn = os.path.join(root, file)
@@ -277,9 +287,15 @@ class DatasetBrowser(QGroupBox):
 
 
     def refresh_list(self):
+        if self.chk_review_mode.isChecked():
+            images = [
+                im for im in self.images if self.image_annotations[im.id]
+            ]
+        else:
+            images = self.images
         self.dataset_table.setRowCount(0)
-        self.dataset_table.setRowCount(len(self.images))
-        for r, image in enumerate(tqdm(self.images)):
+        self.dataset_table.setRowCount(len(images))
+        for r, image in enumerate(tqdm(images)):
             twi = QTableWidgetItem()
             twi.setCheckState(Qt.CheckState.Checked if image.marked else Qt.CheckState.Unchecked)
             self.dataset_table.setItem(r, 0, twi)
@@ -288,9 +304,17 @@ class DatasetBrowser(QGroupBox):
             self.dataset_table.setItem(r, 2, QTableWidgetItem(image.file_name))
 
     def selected_image_changed(self):
+        if self.chk_review_mode.isChecked():
+            images = [
+                im for im in self.images if self.image_annotations[im.id]
+            ]
+        else:
+            images = self.images
+
         index = self.dataset_table.selectedRanges()[0].topRow()
-        imname = os.path.join(self.droot, self.images[index].file_name)
-        im_id = self.images[index].id
-        self.app.set_image(imname, self.images[index].id, self.image_annotations[im_id])
+        self.dataset_table
+        imname = os.path.join(self.droot, images[index].file_name)
+        im_id = images[index].id
+        self.app.set_image(imname, images[index].id, self.image_annotations[im_id])
         self.app.set_info('image ID', f'{im_id}')
         self.app.particle_browser.refresh_table()
