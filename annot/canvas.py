@@ -54,7 +54,8 @@ class Canvas(QWidget):
         self.mouse_screen_pos = event.screenPos().x(), event.screenPos().y()
 
         if self.input_state == InputState.Idle:
-            pass
+            if not self.app.particle_browser.current:
+                self.app.particle_browser.try_select_at_position(self.mouse_pos)
         elif (self.input_state == InputState.DraggingLeft) or (self.input_state == InputState.DraggingRight):
             if Qt.KeyboardModifier.ShiftModifier in event.modifiers():
                 self.pan()
@@ -72,7 +73,11 @@ class Canvas(QWidget):
             self.pan_mouse_start_pos = self.mouse_screen_pos
             self.pan_start_pos = self.pos().x(), self.pos().y()
         else:
-            self.add_or_remove(event.button() == Qt.MouseButton.LeftButton)
+            if self.app.particle_browser.current:
+                self.add_or_remove(event.button() == Qt.MouseButton.LeftButton)
+            elif self.app.particle_browser.selected and (self.mouse_pos in self.app.particle_browser.selected):
+                self.app.particle_browser.edit_selected()
+                self.repaint()
 
     def mouseDoubleClickEvent(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.LeftButton:

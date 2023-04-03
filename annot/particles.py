@@ -13,6 +13,7 @@ class ParticleBrowser(QGroupBox):
         self.app = app
         self.annotations: List[Annotation] = []
         self.current = None
+        self.selected = None
         self.im_id = -1
 
         self.layout = QVBoxLayout(self)
@@ -34,14 +35,21 @@ class ParticleBrowser(QGroupBox):
         self.setMinimumHeight(300)
     
     def selection_changed(self, *args):
+        self.selected = None
         try:
             selected_index = self.table_particles.selectedIndexes()[0].row()
+            self.selected = self.annotations[selected_index]
         except IndexError:
             selected_index = None
         for i, a in enumerate(self.annotations):
             a.is_selected = i == selected_index
         self.app.canvas.repaint()
-            
+    
+    def try_select_at_position(self, xy):
+        for i, annot in enumerate(self.annotations):
+            if xy in annot:
+                self.table_particles.selectRow(i)
+                break
 
     def refresh_table(self):
         self.table_particles.setRowCount(len(self.annotations))
@@ -78,6 +86,10 @@ class ParticleBrowser(QGroupBox):
             self.current = None
             self.app.canvas.repaint()
         self.app.toolbox.stop_editing_button.setEnabled(False)
+    
+    def edit_selected(self):
+        if self.selected is not None:
+            self.edit_annot(self.selected)
 
     def edit_annot(self, a: Annotation):
         if self.current is not None:
