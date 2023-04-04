@@ -25,7 +25,7 @@ class Canvas(QWidget):
         self.app = app
         self.mouse_pos = None
         self.scale_i = 4
-        self.scales = [0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0]
+        self.scales = [0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
         self.mouse_screen_pos = (0, 0)
         self.pan_mouse_start_pos = (0, 0)
         self.pan_start_pos = (0, 0)
