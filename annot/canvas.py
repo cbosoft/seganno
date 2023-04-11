@@ -28,7 +28,7 @@ class Canvas(QWidget):
         self.scales = [0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
         self.mouse_screen_pos = (0, 0)
         self.pan_mouse_start_pos = (0, 0)
-        self.pan_start_pos = (0, 0)
+        self.pan_start_pos = None
 
         self.image_array: Optional[np.ndarray] = None
         self.image: Optional[QImage] = None
@@ -57,7 +57,7 @@ class Canvas(QWidget):
             if not self.app.particle_browser.current:
                 self.app.particle_browser.try_select_at_position(self.mouse_pos)
         elif (self.input_state == InputState.DraggingLeft) or (self.input_state == InputState.DraggingRight):
-            if Qt.KeyboardModifier.ShiftModifier in event.modifiers():
+            if self.pan_start_pos is not None:
                 self.pan()
             else:
                 self.add_or_remove_move(self.input_state == InputState.DraggingLeft)
@@ -68,8 +68,8 @@ class Canvas(QWidget):
         self.repaint()
 
     def mousePressEvent(self, event: QMouseEvent):
-        self.input_state = InputState.DraggingLeft if event.button() == Qt.MouseButton.LeftButton else InputState.DraggingRight
-        if Qt.KeyboardModifier.ShiftModifier in event.modifiers():
+        self.input_state = InputState.DraggingRight if event.button() == Qt.MouseButton.RightButton else InputState.DraggingLeft
+        if (Qt.KeyboardModifier.ShiftModifier in event.modifiers()) or (event.button() == Qt.MouseButton.MiddleButton):
             self.pan_mouse_start_pos = self.mouse_screen_pos
             self.pan_start_pos = self.pos().x(), self.pos().y()
         else:
