@@ -42,6 +42,9 @@ class Annotation:
         pjoined[::2] = px
         pjoined[1::2] = py
 
+        if area < 1:
+            raise RuntimeError
+
         return dict(
             id=self.id_no,
             image_id=self.im_id,

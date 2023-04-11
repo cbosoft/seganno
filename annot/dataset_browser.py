@@ -224,10 +224,13 @@ class DatasetBrowser(QGroupBox):
                 im_dict = {k: v for k, v in im.__dict__.items() if k not in {'marked'}}
                 images.append(im_dict)
                 for annot in self.image_annotations[im.id]:
-                    adict = annot.as_coco_annot()
-                    adict['id'] = len(annots)
-                    adict['image_id'] = im.id
-                    annots.append(adict)
+                    try:
+                        adict = annot.as_coco_annot()
+                        adict['id'] = len(annots)
+                        adict['image_id'] = im.id
+                        annots.append(adict)
+                    except RuntimeError:
+                        continue
         print(f'saved ds of {len(images)} images and {len(annots)} annotations.')
         return dict(
             info=self.info.__dict__,
