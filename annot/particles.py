@@ -82,6 +82,9 @@ class ParticleBrowser(QGroupBox):
     
     def stop_editing(self):
         if self.current is not None:
+            if len(self.current.points) < 3:
+                self.annotations.remove(self.current)
+                self.refresh_table()
             self.current.is_editing = False
             self.current = None
             self.app.canvas.repaint()
