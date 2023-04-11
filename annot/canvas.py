@@ -6,10 +6,11 @@ import numpy as np
 import cv2
 
 from PySide6.QtWidgets import QWidget
-from PySide6.QtGui import QPaintEvent, QPainter, QMouseEvent, QColor, QImage, QBrush, QPainterPath, QPixmap, QPen
+from PySide6.QtGui import QPaintEvent, QPainter, QMouseEvent, QWheelEvent, QColor, QImage, QBrush, QPainterPath, QPixmap, QPen
 from PySide6.QtCore import Qt
 
 from .annotation import Annotation
+from .wheel_state import WheelState
 
 
 class InputState(Enum):
@@ -37,6 +38,7 @@ class Canvas(QWidget):
         self.setMouseTracking(True)
         self.resize(1000, 1000)
         self.setCursor(Qt.CursorShape.BlankCursor)
+        self.wheel_state = WheelState()
 
         self.input_state = InputState.Idle
     
@@ -95,6 +97,18 @@ class Canvas(QWidget):
         self.input_state = InputState.Idle
         self.pan_start_pos = self.pan_mouse_start_pos = None
 
+    def wheelEvent(self, event: QWheelEvent) -> None:
+        self.wheel_state.update(event)
+
+        if self.wheel_state.zoom_in:
+            self.zoom_in()
+        elif self.wheel_state.zoom_out:
+            self.zoom_out()
+        elif self.wheel_state.pan_up:
+            self.manual_pan(0, 5)
+        elif self.wheel_state.pan_down:
+            self.manual_pan(0, -5)
+
     def end_path(self):
         self.app.particle_browser.finish_with_current()
 
@@ -129,6 +143,12 @@ class Canvas(QWidget):
         if annot is None and create_if_not_exists:
             annot = self.create_new_annot()
         return annot
+
+    def manual_pan(self, dx, dy):
+        mx, my = self.mouse_pos
+        self.pan_mouse_start_pos = (mx - dx, my + dy)
+        self.pan_start_pos = self.pos().x(), self.pos().y()
+        self.pan()
 
     def pan(self):
         if self.pan_mouse_start_pos is None:
