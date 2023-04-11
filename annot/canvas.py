@@ -195,8 +195,12 @@ class Canvas(QWidget):
 
     def set_image(self, image_fn: str):
         image_fn = image_fn.replace('/', os.sep).replace('\\', os.sep)
+        psize = (2000, 2000) if self.image_array is None else self.image_array.shape
         self.image_array = cv2.imread(image_fn, cv2.IMREAD_GRAYSCALE)
-        assert self.image_array is not None, f'Failed to read image {image_fn}'
+        if self.image_array is None:
+            print( f'Failed to read image {image_fn}')
+
+            self.image_array = np.zeros(psize, dtype=np.uint8)
         self.set_image_from_array()
 
     def paintEvent(self, event: QPaintEvent):
@@ -249,6 +253,11 @@ class Canvas(QWidget):
 
     def draw_annotation(self, annot: Annotation, p: QPainter, is_editing: bool):
         if annot.points:
+            w, h = self.image_size
+            for i, (x, y) in enumerate(annot.points):
+                x = min(max(x, 0), w)
+                y = min(max(y, 0), h)
+                annot.points[i] = (x, y)
             if is_editing and self.get_current_tool().show_next_point and self.mouse_pos is not None:
                 polyg = [*annot.points, self.mouse_pos]
             else:
