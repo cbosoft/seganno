@@ -241,4 +241,4 @@ class Canvas(QWidget):
                 bordered=annot.is_selected or annot.is_editing,
                 dashed_border=not annot.is_editing, 
                 colour=annot.colour,
-                fill_opacity=60 if annot.is_editing else 90)
+                fill_opacity=60 if annot.is_editing else 150)
