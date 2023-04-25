@@ -96,6 +96,7 @@ class Canvas(QWidget):
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         self.input_state = InputState.Idle
         self.pan_start_pos = self.pan_mouse_start_pos = None
+        self.get_current_tool().mouse_release(event.button() == Qt.MouseButton.LeftButton)
 
     def wheelEvent(self, event: QWheelEvent) -> None:
         self.wheel_state.update(event)
@@ -225,7 +226,17 @@ class Canvas(QWidget):
         p.end()
 
     @staticmethod
-    def draw_polyg(p: QPainter, polyg, filled: bool, bordered: bool, dashed_border: bool, colour, fill_opacity: int, bright_border: bool):
+    def draw_polyg(
+            p: QPainter,
+            polyg,
+            filled: bool,
+            bordered: bool,
+            dashed_border: bool,
+            colour,
+            fill_opacity: int,
+            bright_border: bool,
+            draw_points: bool,
+    ):
         assert polyg
         path = QPainterPath()
         path.moveTo(*polyg[0])
@@ -251,6 +262,11 @@ class Canvas(QWidget):
             p.setPen(pen)
             p.drawPath(path)
 
+        if draw_points:
+            p.setBrush(QColor('black'))
+            for (x, y) in polyg:
+                p.drawEllipse(x - 3, y - 3, 6, 6)
+
     def draw_annotation(self, annot: Annotation, p: QPainter, is_editing: bool):
         if annot.points:
             w, h = self.image_size
@@ -258,10 +274,15 @@ class Canvas(QWidget):
                 x = min(max(x, 0), w)
                 y = min(max(y, 0), h)
                 annot.points[i] = (x, y)
-            if is_editing and self.get_current_tool().show_next_point and self.mouse_pos is not None:
+
+            tool = self.get_current_tool()
+
+            if is_editing and tool.show_next_point and self.mouse_pos is not None:
                 polyg = [*annot.points, self.mouse_pos]
             else:
                 polyg = annot.points
+
+            tool.draw_widgets(self.mouse_pos, annot, p)
 
             self.draw_polyg(
                 p, polyg,
@@ -270,4 +291,6 @@ class Canvas(QWidget):
                 bordered=annot.is_selected or annot.is_editing,
                 dashed_border=not annot.is_editing, 
                 colour=annot.colour,
-                fill_opacity=60 if annot.is_editing else 150)
+                fill_opacity=60 if annot.is_editing else 150,
+                draw_points=annot.is_editing,
+            )
