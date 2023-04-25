@@ -22,3 +22,9 @@ class Tool:
 
     def remove_move(self, x, y, a: Annotation):
         raise NotImplementedError
+
+    def mouse_release(self, is_left: bool):
+        pass
+
+    def draw_widgets(self, mouse_pos, a: Annotation, p: QPainter):
+        pass
