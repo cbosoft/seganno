@@ -3,7 +3,8 @@ from typing import Tuple
 from matplotlib.path import Path
 import numpy as np
 
-from .class_labels import CLASSES, CLASS_COLOURS
+from .class_labels import CLASS_COLOURS
+from .guess_label import guess_class
 
 
 class Annotation:
@@ -70,3 +71,15 @@ class Annotation:
         rv.coco_id = id
         rv.bbox = bbox
         return rv
+
+    def cv_contour(self):
+        pts_arr = np.array(self.points, dtype=int)
+        return pts_arr[:, np.newaxis, :]
+
+    def stop_editing(self, callback):
+        self.is_editing = False
+
+        if self.class_label < 1:
+            self.class_label = guess_class(self.cv_contour())
+            assert self.class_label > 0
+            callback()

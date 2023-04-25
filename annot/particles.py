@@ -85,7 +85,7 @@ class ParticleBrowser(QGroupBox):
             if len(self.current.points) < 3:
                 self.annotations.remove(self.current)
                 self.refresh_table()
-            self.current.is_editing = False
+            self.current.stop_editing(self.refresh_table)
             self.current = None
             self.app.canvas.repaint()
         self.app.toolbox.stop_editing_button.setEnabled(False)
@@ -96,7 +96,7 @@ class ParticleBrowser(QGroupBox):
 
     def edit_annot(self, a: Annotation):
         if self.current is not None:
-            self.current.is_editing = False
+            self.current.stop_editing(self.refresh_table)
         self.current = a
         a.is_editing = True
         self.refresh_table()
@@ -111,7 +111,7 @@ class ParticleBrowser(QGroupBox):
     def set_annotations(self, annotations: List[Annotation], im_id: int):
         self.annotations = annotations
         if self.current is not None:
-            self.current.is_editing = False
+            self.current.stop_editing(self.refresh_table)
         self.current = None
         self.im_id = im_id
 

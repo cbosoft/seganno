@@ -46,7 +46,16 @@ class ClassPalette(QGroupBox):
             if self.selected_class is None:
                 chk.setChecked(True)
 
+        chk = ColourBlobRadioButton('GUESS!', colour='#FF00FF')
+        chk.toggled.connect(lambda v: self.selected_class_changed(v, -1))
+        self.layout.addWidget(chk)
+        if self.selected_class is None:
+            chk.setChecked(True)
+
     def selected_class_changed(self, is_checked, i):
         if is_checked:
             self.selected_class = i
-            self.app.set_info('class', CLASSES[i - 1])
+            if i > 0:
+                self.app.set_info('class', CLASSES[i - 1])
+            else:
+                self.app.set_info('class', 'unkown class')
