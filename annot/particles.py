@@ -89,6 +89,7 @@ class ParticleBrowser(QGroupBox):
             self.current = None
             self.app.canvas.repaint()
         self.app.toolbox.stop_editing_button.setEnabled(False)
+        self.app.toolbox.current_tool().reset()
     
     def edit_selected(self):
         if self.selected is not None:

@@ -8,6 +8,9 @@ class Tool:
     show_next_point = False
     icon = None
 
+    def reset(self):
+        pass
+
     def draw_cursor(self, x, y, p: QPainter):
         raise NotImplementedError
 

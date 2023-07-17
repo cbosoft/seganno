@@ -1,6 +1,9 @@
+from typing import Tuple
+
 from PySide6.QtGui import QPainter, QColor
 
 import numpy as np
+from scipy.optimize import minimize
 
 from ..annotation import Annotation
 from .tool_base import Tool
@@ -12,58 +15,52 @@ class CircleTool(Tool):
     icon = 'circle'
 
     def __init__(self):
-        self.start = None
-    
-    @staticmethod
-    def get_points(start, end):
-        sx, sy = start
-        ex, ey = end
-        cx = (sx + ex)*0.5
-        cy = (sy + ey)*0.5
-        diameter = ((ey - sy)**2.0 + (ex - sx)**2.0)**0.5
-        r = diameter*0.5
+        self.points = []
 
+    def reset(self):
+        self.points = []
+    
+    def fit_circle(self, additional_point=None) -> Tuple[float, float, float]:
+        points = self.points if additional_point is None else [*self.points, additional_point]
+        x, y = np.array(points).T
+        max_x, max_y = np.max(x), np.max(y)
+        min_x, min_y = np.min(x), np.min(y)
+        cx, cy = (max_x + min_x)*0.5, (max_y + min_y)*0.5
+        r = np.mean(((x - cx)**2. + (y - cy)**2.)**0.5)
+        return cx, cy, r
+
+    def interp_points(self, cx, cy, r, n=50):
         points = []
-        for theta in np.linspace(0, np.pi*2.0, 51):
+        for theta in np.linspace(0, np.pi*2.0, n + 1):
             x = cx + r*np.sin(theta)
             y = cy + r*np.cos(theta)
             points.append((float(x), float(y)))
         return points
 
     def draw_cursor(self, x, y, p: QPainter):
-        if self.start is not None:
-            sx, sy = self.start
-            cx = (sx + x)*0.5
-            cy = (sy + y)*0.5
-            w = h = _diameter = ((y - sy)**2.0 + (x - sx)**2.0)**0.5
-            p.setPen(QColor(0, 127, 0, 255))
-            p.drawEllipse(cx-w/2, cy-h/2, w, h)
+        p.setBrush(QColor(0, 0, 0, 0))
+        p.setPen(QColor(0, 0, 255, 255))
+        p.drawEllipse(x-2, y-2, 4, 4)
+        for px, py in self.points:
+            p.drawEllipse(px-2, py-2, 4, 4)
+        if self.points:
+            cx, cy, r = self.fit_circle(additional_point=(x, y))
+            cx, cy, r = int(cx), int(cy), int(r)
+            d = r*2
             p.setPen(QColor(0, 0, 255, 255))
-            p.drawLine(sx, sy, x, y)
-        else:
-            p.setPen(QColor(0, 0, 255, 255))
-            p.drawEllipse(x-2, y-2, 4, 4)
+            p.drawEllipse(cx-r, cy-r, d, d)
 
     def add(self, x, y, a: Annotation):
-        if self.start is None:
-            self.start = (x, y)
-            a.points = []
-        else:
-            start = self.start
-            self.start = None
-            end = (x, y)
-            a.points = self.get_points(start, end)
-            # TODO!
-            # a.set_label(3)  # circle... its probably a sphere
+        self.points.append((x, y))
+        a.points = self.interp_points(*self.fit_circle())
 
     def add_move(self, x, y, a: Annotation):
         pass
 
     def remove(self, x, y, a: Annotation):
-        if self.end is not None:
-            self.end = None
-        else:
-            self.start = None
+        if self.points:
+            _ = self.points.pop(-1)
+            a.points = self.interp_points(*self.fit_circle())
 
     def remove_move(self, x, y, a: Annotation):
         pass

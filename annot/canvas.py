@@ -143,6 +143,7 @@ class Canvas(QWidget):
         annot = self.app.particle_browser.get_current_annotation(*self.mouse_pos)
         if annot is None and create_if_not_exists:
             annot = self.create_new_annot()
+            self.get_current_tool().reset()
         return annot
 
     def manual_pan(self, dx, dy):
@@ -236,6 +237,7 @@ class Canvas(QWidget):
             fill_opacity: int,
             bright_border: bool,
             draw_points: bool,
+            scale=1.0,
     ):
         assert polyg
         path = QPainterPath()
@@ -265,7 +267,9 @@ class Canvas(QWidget):
         if draw_points:
             p.setBrush(QColor('black'))
             for (x, y) in polyg:
-                p.drawEllipse(x - 3, y - 3, 6, 6)
+                w = 6 / scale
+                hw = w * 0.5
+                p.drawEllipse(x - hw, y - hw, w, w)
 
     def draw_annotation(self, annot: Annotation, p: QPainter, is_editing: bool):
         if annot.points:
@@ -293,4 +297,5 @@ class Canvas(QWidget):
                 colour=annot.colour,
                 fill_opacity=60 if annot.is_editing else 150,
                 draw_points=annot.is_editing,
+                scale=self.scale,
             )
