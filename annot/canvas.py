@@ -140,6 +140,8 @@ class Canvas(QWidget):
         return annot
 
     def get_current_annotation(self, create_if_not_exists: bool):
+        if self.mouse_pos is None:
+            return None
         annot = self.app.particle_browser.get_current_annotation(*self.mouse_pos)
         if annot is None and create_if_not_exists:
             annot = self.create_new_annot()
@@ -288,14 +290,16 @@ class Canvas(QWidget):
 
             tool.draw_widgets(self.mouse_pos, annot, p)
 
+            is_generally_annotating = self.get_current_annotation(False)
+
             self.draw_polyg(
                 p, polyg,
                 filled=True,
                 bright_border=annot.is_selected and not annot.is_editing,
-                bordered=annot.is_selected or annot.is_editing,
+                bordered=(annot.is_selected and not is_generally_annotating) or annot.is_editing,
                 dashed_border=not annot.is_editing, 
                 colour=annot.colour,
-                fill_opacity=60 if annot.is_editing else 150,
+                fill_opacity=60 if annot.is_editing else (10 if is_generally_annotating else 150),
                 draw_points=annot.is_editing,
                 scale=self.scale,
             )
