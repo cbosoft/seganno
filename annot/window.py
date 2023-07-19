@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QSplitter,
     QLabel,
     QSizePolicy,
+    QStatusBar,
 )
 from PySide6.QtCore import Qt
 
@@ -23,11 +24,10 @@ from .resources import ICONS
 
 class MainWindow(QMainWindow):
 
-    SIDE_PANEL_SIZE = 250
+    SIDE_PANEL_SIZE = 150
 
     def __init__(self):
         super().__init__()
-        self.info_label = QLabel()
         self.info_parts = {}
 
         self.setMouseTracking(True)
@@ -37,13 +37,14 @@ class MainWindow(QMainWindow):
         self.particle_browser = ParticleBrowser(self)
         self.dataset_browser = DatasetBrowser(self)
         self.aug_toolbox = AugmentationToolbox(self)
+        self.setStatusBar(QStatusBar())
 
         cw = QSplitter(Qt.Orientation.Horizontal)  # QWidget()
         self.setCentralWidget(cw)
         # cw.layout = QHBoxLayout(cw)
 
         left = QWidget()
-        left.setMaximumWidth(self.SIDE_PANEL_SIZE)
+        left.setMaximumWidth(self.SIDE_PANEL_SIZE*2)
         left.setMinimumWidth(self.SIDE_PANEL_SIZE)
         left.layout = QVBoxLayout(left)
         left.layout.addWidget(self.toolbox)
@@ -71,13 +72,12 @@ class MainWindow(QMainWindow):
         canvas_container = QWidget()
         canvas_container.setStyleSheet('background-color: white;')
         centre.layout.addWidget(canvas_container)
-        centre.layout.addWidget(self.info_label)
-        self.info_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
         self.canvas.setParent(canvas_container)
 
         right = QWidget()
         right.setMaximumWidth(self.SIDE_PANEL_SIZE*2)
-        right.setMinimumWidth(self.SIDE_PANEL_SIZE*2)
+        right.setMinimumWidth(self.SIDE_PANEL_SIZE)
         right.layout = QVBoxLayout(right)
         right.layout.addWidget(self.particle_browser)
         right.layout.addWidget(self.dataset_browser)
@@ -97,7 +97,8 @@ class MainWindow(QMainWindow):
         self.refresh_info_label()
     
     def refresh_info_label(self):
-        self.info_label.setText(', '.join([f'{k}: {v}' for k, v in self.info_parts.items()]))
+        info_text = ', '.join([f'{k}: {v}' for k, v in self.info_parts.items()])
+        self.statusBar().showMessage(info_text)
 
     def set_image(self, image_fn: str, image_id: int, annot_storage: list):
         self.particle_browser.set_annotations(annot_storage, image_id)
