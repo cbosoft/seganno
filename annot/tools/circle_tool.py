@@ -47,7 +47,7 @@ class CircleTool(Tool):
     def draw_widgets(self, mouse_pos, _: Annotation, p: QPainter, o: int):
         for px, py in self.points:
             p.drawEllipse(px-2 + o, py-2 + o, 4, 4)
-        if self.points and mouse_pos:
+        if self.points:
             mx, my = mouse_pos
             cx, cy, r = self.fit_circle(additional_point=(mx-o, my-o))
             cx, cy, r = int(cx), int(cy), int(r)

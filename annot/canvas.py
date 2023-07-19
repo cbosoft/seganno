@@ -312,7 +312,8 @@ class Canvas(QWidget):
             else:
                 polyg = annot.points
 
-            tool.draw_widgets(self.mouse_pos, annot, p)
+            if self.mouse_pos is not None:
+                tool.draw_widgets([v + self.OFFSET for v in self.mouse_pos], annot, p, self.OFFSET)
 
             is_generally_annotating = self.get_current_annotation(False)
 
