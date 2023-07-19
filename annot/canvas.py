@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 
 from PySide6.QtWidgets import QWidget
-from PySide6.QtGui import QPaintEvent, QPainter, QMouseEvent, QWheelEvent, QColor, QImage, QBrush, QPainterPath, QPixmap, QPen
+from PySide6.QtGui import QPaintEvent, QPainter, QMouseEvent, QWheelEvent, QColor, QImage, QPainterPath, QPen
 from PySide6.QtCore import Qt
 
 from .annotation import Annotation
