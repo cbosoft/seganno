@@ -21,10 +21,12 @@ class InputState(Enum):
 
 class Canvas(QWidget):
 
+    OFFSET = 500
+
     def __init__(self, app):
         super().__init__()
         self.app = app
-        self.mouse_pos = None
+        self.mouse_pos = self.mouse_widget_pos = None
         self.scale_i = 4
         self.scales = [0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
         self.mouse_screen_pos = (0, 0)
@@ -36,7 +38,8 @@ class Canvas(QWidget):
         self.image_size = (1000, 1000)
 
         self.setMouseTracking(True)
-        self.resize(1000, 1000)
+        self.resize(1000 + 2*self.OFFSET, 1000 + 2*self.OFFSET)
+        self.reset_position()
         self.setCursor(Qt.CursorShape.BlankCursor)
         self.wheel_state = WheelState()
 
@@ -52,7 +55,11 @@ class Canvas(QWidget):
         self.repaint()
 
     def mouseMoveEvent(self, event: QMouseEvent):
-        self.mouse_pos = event.pos().x()/self.scale, event.pos().y()/self.scale
+        x, y = (event.pos().x() - self.OFFSET)/self.scale, (event.pos().y() - self.OFFSET)/self.scale # pos on image
+        x = min(max(0, x), self.image_size[0])
+        y = min(max(0, y), self.image_size[1])
+        self.mouse_pos = x, y
+        self.mouse_widget_pos = event.pos().x()/self.scale, event.pos().y()/self.scale # pos on widget
         self.mouse_screen_pos = event.screenPos().x(), event.screenPos().y()
 
         if self.input_state == InputState.Idle:
@@ -173,7 +180,7 @@ class Canvas(QWidget):
         self.repaint()
     
     def reset_position(self):
-        self.move(0, 0)
+        self.move(-self.OFFSET + 4, -self.OFFSET + 4)
         self.scale_i = self.scales.index(1)
 
     def set_image_from_array(self):
@@ -193,8 +200,8 @@ class Canvas(QWidget):
             w,
             QImage.Format.Format_Grayscale8
         )
-        self.image_size = self.image.width(), self.image.height()
-        self.resize(self.image.size())
+        self.image_size = w, h = self.image.width(), self.image.height()
+        self.resize(w + 2*self.OFFSET, h + 2*self.OFFSET)
         self.repaint()
 
     def set_image(self, image_fn: str):
@@ -210,14 +217,14 @@ class Canvas(QWidget):
     def paintEvent(self, event: QPaintEvent):
         if self.image is not None:
             im_w, im_h = self.image.size().width(), self.image.size().height()
-            self.resize(int(im_w*self.scale), int(im_h*self.scale))
+            self.resize(int(im_w*self.scale) + 2*self.OFFSET, int(im_h*self.scale) + 2*self.OFFSET)
         
         p = QPainter()
         p.begin(self)
         p.setRenderHint(QPainter.Antialiasing)
         p.scale(self.scale, self.scale)
         if self.image:
-            p.drawImage(0, 0, self.image)
+            p.drawImage(self.OFFSET, self.OFFSET, self.image)
 
         # Annotations
         for annot in self.app.particle_browser.annotations:
@@ -225,7 +232,24 @@ class Canvas(QWidget):
 
         # cursor
         if self.mouse_pos is not None:
-            self.app.toolbox.current_tool().draw_cursor(*self.mouse_pos, p)
+            x, y = self.mouse_pos
+            self.app.toolbox.current_tool().draw_cursor(x+self.OFFSET, y+self.OFFSET, p)
+            x, y = self.mouse_widget_pos
+            pen = QPen()
+            pen.setColor('black')
+            pen.setWidth(1)
+            p.setPen(pen)
+            p.setBrush(QColor(0, 0, 0, 255))
+            p.drawEllipse(x-1, y-1, 3, 3)
+        
+        w, h = int(self.width()*self.scale), int(self.height()*self.scale)
+        pen = QPen()
+        pen.setColor('black')
+        pen.setWidth(2)
+        p.setPen(pen)
+        p.setBrush(QColor(0, 0, 0, 0))
+        p.drawRect(2, 2, w-2, h-2)
+        p.drawRect(self.OFFSET - 2, self.OFFSET - 2, w+4 - self.OFFSET*2, h+4 - self.OFFSET*2)
         p.end()
 
     @staticmethod
@@ -291,6 +315,8 @@ class Canvas(QWidget):
             tool.draw_widgets(self.mouse_pos, annot, p)
 
             is_generally_annotating = self.get_current_annotation(False)
+
+            polyg = [(x+self.OFFSET, y+self.OFFSET) for x, y in polyg]
 
             self.draw_polyg(
                 p, polyg,
