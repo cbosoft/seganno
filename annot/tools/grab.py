@@ -37,7 +37,7 @@ class GrabTool(Tool):
     def remove_move(self, x, y, a: Annotation):
         pass
 
-    def draw_widgets(self, mouse_pos, a: Annotation, p: QPainter):
+    def draw_widgets(self, mouse_pos, a: Annotation, p: QPainter, _):
         if mouse_pos is None:
             return
 

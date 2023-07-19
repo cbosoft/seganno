@@ -43,7 +43,7 @@ class BikePumpTool(Tool):
             dir /= np.sqrt(np.dot(dir, dir))
             a.points[i] = float(px + dir[0]*delta), float(py + dir[1]*delta)
 
-    def draw_widgets(self, mouse_pos, a: Annotation, p: QPainter):
+    def draw_widgets(self, mouse_pos, a: Annotation, p: QPainter, _):
         x = [p[0] for p in a.points]
         y = [p[1] for p in a.points]
         cx, cy = centroid = np.array([sum(x)/len(x), sum(y)/len(y)])

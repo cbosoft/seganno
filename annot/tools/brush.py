@@ -14,6 +14,7 @@ class BrushTool(Tool):
 
     def draw_cursor(self, x, y, p: QPainter):
         p.setPen(QColor(0, 255, 0, 255))
+        p.setBrush(QColor(0, 0, 0, 0))
         p.drawEllipse(x-self.HALF_BRUSH_SIZE, y-self.HALF_BRUSH_SIZE, self.HALF_BRUSH_SIZE*2, self.HALF_BRUSH_SIZE*2)
 
     def add(self, x, y, a: Annotation):

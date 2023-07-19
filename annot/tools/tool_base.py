@@ -29,5 +29,5 @@ class Tool:
     def mouse_release(self, is_left: bool):
         pass
 
-    def draw_widgets(self, mouse_pos, a: Annotation, p: QPainter):
+    def draw_widgets(self, mouse_pos, a: Annotation, p: QPainter, o: int):
         pass

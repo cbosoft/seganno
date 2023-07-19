@@ -5,6 +5,8 @@ from PySide6.QtGui import QPainter, QColor
 import numpy as np
 from scipy.optimize import minimize
 
+from annot.annotation import Annotation
+
 from ..annotation import Annotation
 from .tool_base import Tool
 
@@ -41,14 +43,17 @@ class CircleTool(Tool):
         p.setBrush(QColor(0, 0, 0, 0))
         p.setPen(QColor(0, 0, 255, 255))
         p.drawEllipse(x-2, y-2, 4, 4)
+    
+    def draw_widgets(self, mouse_pos, _: Annotation, p: QPainter, o: int):
         for px, py in self.points:
-            p.drawEllipse(px-2, py-2, 4, 4)
-        if self.points:
-            cx, cy, r = self.fit_circle(additional_point=(x, y))
+            p.drawEllipse(px-2 + o, py-2 + o, 4, 4)
+        if self.points and mouse_pos:
+            mx, my = mouse_pos
+            cx, cy, r = self.fit_circle(additional_point=(mx-o, my-o))
             cx, cy, r = int(cx), int(cy), int(r)
             d = r*2
             p.setPen(QColor(0, 0, 255, 255))
-            p.drawEllipse(cx-r, cy-r, d, d)
+            p.drawEllipse(cx-r+o, cy-r+o, d, d)
 
     def add(self, x, y, a: Annotation):
         self.points.append((x, y))
