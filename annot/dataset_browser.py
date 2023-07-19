@@ -36,17 +36,23 @@ class DatasetBrowser(QGroupBox):
 
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
+
         open_button_box = QWidget()
         open_button_box.layout = QHBoxLayout(open_button_box)
         open_button_box.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(open_button_box)
+
+        self.btn_new = QPushButton('New')
+        self.btn_new.clicked.connect(self.new_dataset)
         self.btn_open = QPushButton('Open')
         self.btn_open.setToolTip('Open a dataset, replacing current.')
-        self.btn_open.clicked.connect(self.open_dataset)
+        self.btn_open.clicked.connect(self.browse_and_open_dataset)
         self.btn_open_and_merge = QPushButton('Open and Merge')
         self.btn_open_and_merge.setToolTip('Open a dataset, merging into current. Images not present in the current dataset are added. Annotations on each image are added, not replaced.')
         self.btn_open_and_merge.clicked.connect(self.merge_dataset)
         self.btn_open_and_merge.setEnabled(False)
+
+        open_button_box.layout.addWidget(self.btn_new)
         open_button_box.layout.addWidget(self.btn_open)
         open_button_box.layout.addWidget(self.btn_open_and_merge)
 
@@ -88,13 +94,22 @@ class DatasetBrowser(QGroupBox):
         self.progress.setMaximum(100)
         self.layout.addWidget(self.progress)
 
-    def open_dataset(self):
+    def new_dataset(self):
         dn = QFileDialog.getExistingDirectory(
-            self, 'Open a directory of images',
+            self, 'Create new staset from dir of images',
             self.previous_dir,
         )
         if dn:
             self.open_folder(dn)
+
+    def browse_and_open_dataset(self):
+        fn, _ = QFileDialog.getOpenFileName(
+            self, 'Open dataset',
+            self.previous_dir,
+            '*.json',
+        )
+        if fn:
+            self.open_dataset(fn)
     
     def merge_dataset(self):
         dn, _ = QFileDialog.getOpenFileName(
@@ -104,6 +119,17 @@ class DatasetBrowser(QGroupBox):
         )
         if dn:
             self.merge_json(dn)
+
+    def open_dataset(self, fn: str):
+        self.dname = os.path.splitext(fn)[0]
+        self.droot = os.path.dirname(fn)
+        self.previous_dir = self.droot
+        self.info, self.licenses, self.images, annots, self.image_annotations, self.categories = \
+            self.load_coco_json(fn)
+        print(f'Loaded DS with {len(self.images)} images and {len(annots)} annotations.')
+        self.refresh_list()
+        self.app.set_info('dataset', os.path.basename(self.dname))
+        self.btn_open_and_merge.setEnabled(True)
 
     def open_folder(self, dn: str):
         self.dname = dn
