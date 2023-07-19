@@ -338,7 +338,11 @@ class DatasetBrowser(QGroupBox):
             self.dataset_table.setItem(r, 0, twi)
             n_annots = len(self.image_annotations[image.id])
             self.dataset_table.setItem(r, 1, QTableWidgetItem(f'{n_annots}'))
-            self.dataset_table.setItem(r, 2, QTableWidgetItem(image.file_name))
+            fit_filename = image.file_name
+            if len(fit_filename) > 10:
+                fit_filename = '…'+fit_filename[-10:]
+            self.dataset_table.setItem(r, 2, QTableWidgetItem(fit_filename))
+        self.dataset_table.selectRow(0)
 
     def selected_image_changed(self):
         if self.chk_review_mode.isChecked():
@@ -356,7 +360,7 @@ class DatasetBrowser(QGroupBox):
 
         self.dataset_table
         imname = os.path.join(self.droot, images[index].file_name)
-        im_id = images[index].id
-        self.app.set_image(imname, images[index].id, self.image_annotations[im_id])
-        self.app.set_info('image ID', f'{im_id}')
+        im = images[index]
+        self.app.set_image(imname, im.id, self.image_annotations[im.id])
+        self.app.set_info('image', f'{im.file_name}')
         self.app.particle_browser.refresh_table()
