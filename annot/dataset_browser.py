@@ -6,7 +6,11 @@ import shutil
 
 from tqdm import tqdm
 
-from PySide6.QtWidgets import QWidget, QGroupBox, QTableWidget, QTableWidgetItem, QScrollArea, QFileDialog, QPushButton, QHBoxLayout, QVBoxLayout, QHeaderView, QMessageBox, QCheckBox
+from PySide6.QtWidgets import (
+    QWidget, QGroupBox, QTableWidget, QTableWidgetItem, QScrollArea,
+    QFileDialog, QPushButton, QHBoxLayout, QVBoxLayout, QHeaderView,
+    QMessageBox, QCheckBox, QProgressBar,
+)
 from PySide6.QtGui import QImage
 from PySide6.QtCore import Qt
 
@@ -79,6 +83,10 @@ class DatasetBrowser(QGroupBox):
         self.dataset_table.itemSelectionChanged.connect(self.selected_image_changed)
         self.dataset_table.cellClicked.connect(self.datatable_row_clicked)
         self.dataset_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.progress = QProgressBar()
+        self.progress.setValue(0)
+        self.progress.setMaximum(100)
+        self.layout.addWidget(self.progress)
 
     def open_dataset(self):
         dn = QFileDialog.getExistingDirectory(
@@ -315,6 +323,11 @@ class DatasetBrowser(QGroupBox):
             images = self.images
 
         index = self.dataset_table.selectedRanges()[0].topRow()
+
+        # update progress
+        prog = (index + 1) * 100 / self.dataset_table.rowCount()
+        self.progress.setValue(prog)
+
         self.dataset_table
         imname = os.path.join(self.droot, images[index].file_name)
         im_id = images[index].id
